@@ -1,0 +1,3 @@
+# 屏蔽中间文件和vscode文件
+./build/*.*
+./.vscode/*.*
