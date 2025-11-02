@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+* 聊天服务器代码
+*/
+
 #include "muduo/net/EventLoop.h"
 #include "muduo/net/TcpServer.h"
 #include "muduo/net/InetAddress.h"
@@ -9,6 +13,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
+// 聊天服务器
 class ChatServer
 {
 public:
@@ -26,5 +31,5 @@ public:
 
 private:
     EventLoop *loop_; // 事件循环
-    TcpServer server_;
+    TcpServer server_; //网络模块
 };
