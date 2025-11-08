@@ -1,8 +1,11 @@
 #include "ChatServer.hpp"
 #include "json.hpp"
+#include "ChatService.hpp"
+
 #include <functional>
 
 using namespace std::placeholders;
+using namespace nlohmann;
 
 ChatServer::ChatServer(EventLoop *loop, InetAddress addr, const std::string &strName)
     : loop_(loop), server_(loop, addr, strName)
@@ -37,5 +40,10 @@ void ChatServer::OnMessageCallback(const TcpConnectionPtr &conn,
                                    Buffer *buff,
                                    Timestamp time)
 {
+    std::string strMessage = buff->retrieveAllAsString();
+    // 序列化
+    json jsMes = json::parse(strMessage);
+    auto msgHandler = ChatService::instance()->GetMsgHandler(jsMes["msgid"].get<int>());
+    msgHandler(conn,jsMes,time);
 
 }
