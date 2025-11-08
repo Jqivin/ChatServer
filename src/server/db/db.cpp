@@ -1,6 +1,5 @@
 #include "db.h"
 #include <muduo/base/Logging.h>
-#include <string.h>
 
 using namespace muduo;
 
