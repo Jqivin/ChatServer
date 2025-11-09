@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/root/Chat/include -I/root/Chat/include/server -I/root/Chat/include/server/db -I/root/Chat/thirdparty
+CXX_INCLUDES = -I/root/Chat/include -I/root/Chat/include/server -I/root/Chat/include/server/db -I/root/Chat/include/server/model -I/root/Chat/thirdparty
 
 CXX_FLAGS = -g
 

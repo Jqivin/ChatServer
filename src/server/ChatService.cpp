@@ -28,7 +28,32 @@ void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Tim
 // 处理注册业务
 void ChatService::RegisterHandler(const TcpConnectionPtr &conn, const json &js, Timestamp time)
 {
-    LOG_INFO << "do regist";
+    std::string name = js["name"];
+    std::string password = js["password"];
+
+    User user;
+    user.setName(name);
+    user.setPwd(password);
+    bool bRet = userModel_.insertUser(user);
+
+    json jsResponse;
+    jsResponse["msgid"] = REG_MSG_ACK;
+    if(bRet)
+    {
+        LOG_INFO << "insert usr success.";
+
+        jsResponse["errno"] = SUCCESS;
+
+    }
+    else
+    {
+        LOG_ERROR << "insert usr failed.";
+
+        jsResponse["errno"] = REG_FAILED;
+        jsResponse["errdesc"] = "insert usr failed";
+    }
+
+    conn->send(jsResponse.dump().c_str());
 }
 
 MsgHandler ChatService::GetMsgHandler(int msgId)

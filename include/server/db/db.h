@@ -1,5 +1,8 @@
 #pragma once
 
+/*
+* 用于数据库连接的管理以及数据库相关的操作
+*/
 #include <mysql/mysql.h>
 #include <string>
 
