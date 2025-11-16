@@ -22,7 +22,53 @@ ChatService *ChatService::instance()
 // 处理登录业务
 void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Timestamp time)
 {
-    LOG_INFO << "do login";
+    int id = js["id"].get<int>();
+    std::string strPwd = js["password"];
+
+    User user = m_userModel.query(id);
+    if(user.getId() == id && user.getPwd() == strPwd )
+    {
+        // 成功 
+        if(user.getState() == "online")
+        {
+            // 已经登录过了
+            json res;
+            res["msgid"] = LOGIN_MSG_ACK;
+            res["errno"] = LOGIN_HAD_ONLINE;
+            res["errmsg"] = "this account is using, input another!";
+            conn->send(res.dump());
+        }
+        else
+        {
+            // 登录成功，记录用户连接信息
+            {
+                std::lock_guard<std::mutex> locker(m_mutexCon);
+                m_userConnMap.insert({user.getId(),conn});
+            }
+            user.setState("online");
+            m_userModel.updateState(user);
+
+            // 返回客户端信息
+            json response;
+            response["msgid"] = LOGIN_MSG_ACK;
+            response["errno"] = 10000;
+            response["errmsg"] = "success";
+            response["id"] = user.getId();
+            response["name"] = user.getName();
+            conn->send(response.dump());
+        }
+
+    }
+    else
+    {
+        // 失败  用户名或密码错误
+            json res;
+            res["msgid"] = LOGIN_MSG_ACK;
+            res["errno"] = LOGIN_NAME_PWD_ERR;
+            res["errmsg"] = "This account or password error!";
+            conn->send(res.dump());
+    }
+    
 }
 
 // 处理注册业务
@@ -34,7 +80,7 @@ void ChatService::RegisterHandler(const TcpConnectionPtr &conn, const json &js, 
     User user;
     user.setName(name);
     user.setPwd(password);
-    bool bRet = userModel_.insertUser(user);
+    bool bRet = m_userModel.insertUser(user);
 
     json jsResponse;
     jsResponse["msgid"] = REG_MSG_ACK;
@@ -43,6 +89,7 @@ void ChatService::RegisterHandler(const TcpConnectionPtr &conn, const json &js, 
         LOG_INFO << "insert usr success.";
 
         jsResponse["errno"] = SUCCESS;
+        jsResponse["id"] = user.getId();
 
     }
     else
@@ -50,7 +97,7 @@ void ChatService::RegisterHandler(const TcpConnectionPtr &conn, const json &js, 
         LOG_ERROR << "insert usr failed.";
 
         jsResponse["errno"] = REG_FAILED;
-        jsResponse["errdesc"] = "insert usr failed";
+        jsResponse["errmsg"] = "insert usr failed";
     }
 
     conn->send(jsResponse.dump().c_str());
@@ -71,4 +118,30 @@ MsgHandler ChatService::GetMsgHandler(int msgId)
     {
         return m_msgHandlerMap[msgId];
     }
+}
+
+void ChatService::clientCloseException(const TcpConnectionPtr &conn)
+{
+    User user;
+    {
+        std::lock_guard<std::mutex> locker(m_mutexCon);
+        for(auto iter = m_userConnMap.begin();iter != m_userConnMap.end();++iter)
+        {
+            if(iter->second == conn)
+            {
+                user.setId(iter->first);
+                m_userConnMap.erase(iter);
+                break;
+            }
+        }
+    }
+
+    // 修改数据库中的在线状态
+    if (user.getId() != -1)
+    {
+        user.setState("offline");
+        m_userModel.updateState(user);
+    }
+
+    LOG_INFO << "clientCloseException success";
 }

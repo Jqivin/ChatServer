@@ -5,6 +5,7 @@
 */
 #include <functional>
 #include <muduo/net/TcpConnection.h>
+#include <mutex>
 #include "json.hpp"
 #include "user.hpp"
 #include "usermodel.hpp"
@@ -27,11 +28,16 @@ public:
     void RegisterHandler(const TcpConnectionPtr& conn,const json& js,Timestamp time);
     // 根据消息Id获取对应的业务处理类型
     MsgHandler GetMsgHandler(int msgId);
+    // 修改数据库中在线状态
+    void clientCloseException(const TcpConnectionPtr &conn);
 
 private:
     ChatService();
 
     std::unordered_map<int,MsgHandler>  m_msgHandlerMap;        // 业务处理map  msgId->handler
+    std::unordered_map<int, TcpConnectionPtr> m_userConnMap;    // 连接map      用户id->连接
+    std::mutex  m_mutexCon;
 
-    UserModel       userModel_;             // 用户数据管理
+    UserModel       m_userModel;             // 用户数据管理
+    
 };

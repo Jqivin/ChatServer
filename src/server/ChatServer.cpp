@@ -1,6 +1,7 @@
 #include "ChatServer.hpp"
 #include "json.hpp"
 #include "ChatService.hpp"
+#include <muduo/base/Logging.h>
 
 #include <functional>
 
@@ -32,6 +33,8 @@ void ChatServer::OnConnectionCallback(const TcpConnectionPtr &conn)
 {
     if (!conn->connected())
     {
+        // 修改数据库中在线状态
+        ChatService::instance()->clientCloseException(conn);
         conn->shutdown();
     }
 }
@@ -41,6 +44,11 @@ void ChatServer::OnMessageCallback(const TcpConnectionPtr &conn,
                                    Timestamp time)
 {
     std::string strMessage = buff->retrieveAllAsString();
+    if(strMessage.empty())
+    {
+        LOG_ERROR << "request is empty.";
+        return;
+    }
     // 序列化
     json jsMes = json::parse(strMessage);
     auto msgHandler = ChatService::instance()->GetMsgHandler(jsMes["msgid"].get<int>());
