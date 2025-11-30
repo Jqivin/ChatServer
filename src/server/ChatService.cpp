@@ -12,6 +12,7 @@ ChatService::ChatService()
     m_msgHandlerMap.insert({LOGIN_MSG, std::bind(&ChatService::LoginHandler, this, _1, _2, _3)});
     m_msgHandlerMap.insert({REG_MSG, std::bind(&ChatService::RegisterHandler, this, _1, _2, _3)});
     m_msgHandlerMap.insert({ONE_CHAT_MSG, std::bind(&ChatService::OneChatHandler, this, _1, _2, _3)});
+    m_msgHandlerMap.insert({ADD_FRIEND_MSG, std::bind(&ChatService::OnAddFriendHandler, this, _1, _2, _3)});
 }
 
 ChatService *ChatService::instance()
@@ -139,6 +140,13 @@ void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Tim
                 // 删除数据库
                 m_offMsgModel.remove(id);
             }
+            // 获取好友消息
+            json jsonFriends;
+            if(GetFriendInfo(id,jsonFriends))
+            {
+                response["friend"] = jsonFriends;
+            }
+
             conn->send(response.dump());
         }
     }
@@ -171,4 +179,40 @@ void ChatService::OneChatHandler(const TcpConnectionPtr &conn, json &js, Timesta
 
     // toid不在线，存储离线消息
     m_offMsgModel.insert(toid,js.dump());
+}
+
+ // 添加好友业务
+void ChatService::OnAddFriendHandler(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int usrid = js["userid"].get<int>();
+    int friendid = js["friendid"].get<int>();
+
+    m_friendModel.insert(usrid,friendid);
+}
+
+void ChatService::reset()
+{
+    m_userModel.resetStates();
+}
+
+bool ChatService::GetFriendInfo(int userid,json& jsonFriends)
+{
+    std::vector<User> vecUser = m_friendModel.queryfriend(userid);
+
+    if(vecUser.empty())
+    {
+        return false;
+    }
+
+    for(auto& user : vecUser)
+    {
+        json jsUserInfo;
+        jsUserInfo["userid"] = user.getId();
+        jsUserInfo["name"] = user.getName();
+        jsUserInfo["state"] = user.getState();
+
+        jsonFriends.push_back(jsUserInfo);
+    }
+
+    return true;
 }

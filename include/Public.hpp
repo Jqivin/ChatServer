@@ -7,6 +7,7 @@ enum EnMsgType
     REG_MSG_ACK, // 注册响应消息
     LOGIN_MSG_ACK, // 登录响应消息
     ONE_CHAT_MSG, // 聊天消息
+    ADD_FRIEND_MSG, // 添加好友
 };
 
 enum EnErrorType
@@ -15,5 +16,4 @@ enum EnErrorType
     REG_FAILED, // 注册失败
     LOGIN_HAD_ONLINE, // 已经登录过
     LOGIN_NAME_PWD_ERR, // 用户名或密码错误
-
 };

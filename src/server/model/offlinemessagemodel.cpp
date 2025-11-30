@@ -32,7 +32,7 @@ void OfflineMessageModel::remove(int userid)
 std::vector<std::string> OfflineMessageModel::query(int userid)
 {
     char strSql[1024] = {0};
-    sprintf(strSql, "select msg from offlinemessage where userid='%d'", userid);
+    sprintf(strSql, "select msg from offlinemessage where userid=%d", userid);
 
     std::vector<std::string> vec;
     // 创建数据库连接

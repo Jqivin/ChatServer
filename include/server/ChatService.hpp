@@ -10,6 +10,7 @@
 #include "user.hpp"
 #include "usermodel.hpp"
 #include "offlinemessagemodel.hpp"
+#include "friendmodel.hpp"
 
 using namespace muduo;
 using namespace muduo::net;
@@ -33,8 +34,14 @@ public:
     void RegisterHandler(const TcpConnectionPtr& conn,const json& js,Timestamp time);
     // 一对一聊天业务
     void OneChatHandler(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    // 添加好友业务
+    void OnAddFriendHandler(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    // 服务器异常，业务重置方法
+    void reset();
 private:
     ChatService();
+    // 获取好友信息,返回值：有无好友消息 [output] jsonFriends
+    bool GetFriendInfo(int userid,json& jsonFriends);
 
     std::unordered_map<int,MsgHandler>          m_msgHandlerMap;        // 业务处理map  msgId->handler
     std::unordered_map<int, TcpConnectionPtr>   m_userConnMap;    // 连接map      用户id->连接
@@ -42,5 +49,6 @@ private:
 
     UserModel                           m_userModel;             // 用户数据管理
     OfflineMessageModel                 m_offMsgModel;           // 离线消息管理
+    FriendModel                         m_friendModel;           // 好友信息管理
     
 };

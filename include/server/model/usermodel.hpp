@@ -14,6 +14,8 @@ public:
 
     // 更新用户在线状态
     bool updateState( User user);
-
+    
+    // 将online用户更新为offline
+    void resetStates();
 private:
 };
