@@ -7,8 +7,8 @@
 class User
 {
 public:
-    User(std::string name = "", std::string pwd = "",  std::string state = "offline")
-        : name_(name), password_(pwd), state_(state)
+    User(int userid = -1,std::string name = "", std::string pwd = "",  std::string state = "offline")
+        : id_(userid),name_(name), password_(pwd), state_(state)
     {
     }
     ~User() {}
