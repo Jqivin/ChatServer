@@ -49,6 +49,8 @@ void ChatServer::OnMessageCallback(const TcpConnectionPtr &conn,
         LOG_ERROR << "request is empty.";
         return;
     }
+
+    LOG_INFO << "recv message: " << strMessage;
     // 序列化
     json jsMes = json::parse(strMessage);
     auto msgHandler = ChatService::instance()->GetMsgHandler(jsMes["msgid"].get<int>());

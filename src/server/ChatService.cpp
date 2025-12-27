@@ -76,14 +76,19 @@ void ChatService::RegisterHandler(const TcpConnectionPtr &conn, const json &js, 
 {
     std::string name = js["name"];
     std::string password = js["password"];
-
+   int iRequestId = 0;
+    if(js.contains("requestId"))
+    {
+       iRequestId = js["requestId"].get<int>();
+    }
     User user;
     user.setName(name);
     user.setPwd(password);
     bool bRet = m_userModel.insertUser(user);
 
     json jsResponse;
-    jsResponse["msgid"] = REG_MSG_ACK;
+    jsResponse["msgid"] = REG_MSG;
+    jsResponse["requestId"] = iRequestId;
     if (bRet)
     {
         LOG_INFO << "insert usr success.";
@@ -107,6 +112,12 @@ void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Tim
 {
     int id = js["id"].get<int>();
     std::string strPwd = js["password"];
+    int iRequestId = 0;
+    if(js.contains("requestId"))
+    {
+       iRequestId = js["requestId"].get<int>();
+    }
+    
 
     User user = m_userModel.query(id);
     if (user.getId() == id && user.getPwd() == strPwd)
@@ -119,6 +130,7 @@ void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Tim
             res["msgid"] = LOGIN_MSG_ACK;
             res["errno"] = LOGIN_HAD_ONLINE;
             res["errmsg"] = "this account is using, input another!";
+            res["requestId"] = iRequestId;
             conn->send(res.dump());
         }
         else
@@ -134,6 +146,7 @@ void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Tim
             // 返回客户端信息
             json response;
             response["msgid"] = LOGIN_MSG_ACK;
+            response["requestId"] = iRequestId;
             response["errno"] = 10000;
             response["errmsg"] = "success";
             response["id"] = user.getId();
@@ -163,6 +176,7 @@ void ChatService::LoginHandler(const TcpConnectionPtr &conn, const json &js, Tim
         json res;
         res["msgid"] = LOGIN_MSG_ACK;
         res["errno"] = LOGIN_NAME_PWD_ERR;
+        res["requestId"] = iRequestId;
         res["errmsg"] = "This account or password error!";
         conn->send(res.dump());
     }

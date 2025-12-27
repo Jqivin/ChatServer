@@ -124,7 +124,7 @@ int main(int argc, char **argv)
             string request = js.dump();
 
             g_isLoginSuccess = false;
-
+            std::cout << "login request " << request;
             int len = send(clientfd, request.c_str(), strlen(request.c_str()) + 1, 0);
             if (len == -1)
             {
@@ -297,7 +297,9 @@ void readTaskHandler(int clientfd)
         }
 
         // 接收ChatServer转发的数据，反序列化生成json数据对象
+         cout << "hello1" <<buffer<< endl;
         json js = json::parse(buffer);
+        cout << "hello" << endl;
         int msgtype = js["msgid"].get<int>();
         if (ONE_CHAT_MSG == msgtype)
         {
@@ -320,7 +322,7 @@ void readTaskHandler(int clientfd)
             continue;
         }
 
-        if (REG_MSG_ACK == msgtype)
+        if (REG_MSG == msgtype)
         {
             doRegResponse(js);
             sem_post(&rwsem);    // 通知主线程，注册结果处理完成
@@ -477,6 +479,9 @@ void chat(int clientfd, string str)
     if (-1 == len)
     {
         cerr << "send chat msg error -> " << buffer << endl;
+    }
+    else{
+        std::cout << "chat request " << buffer;
     }
 }
 // "creategroup" command handler  groupname:groupdesc
