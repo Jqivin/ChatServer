@@ -1,7 +1,5 @@
 #include "db.h"
-#include <muduo/base/Logging.h>
-
-using namespace muduo;
+#include "Logger.h"
 
 const std::string strHost = "127.0.0.1";
 const std::string strUser = "root";
@@ -14,7 +12,7 @@ MySQL::MySQL()
     conn_ = mysql_init(NULL);
     if (conn_ == NULL)
     {
-        LOG_ERROR << "msql init error!";
+        LOG_ERROR("msql init error!");
     }
 }
 // 销毁数据库连接
@@ -35,7 +33,7 @@ bool MySQL::connectdb()
     }
     else
     {
-        LOG_INFO << "connect mysql fail!";
+        LOG_ERROR("connect mysql fail!");
     }
 
     return p;
@@ -45,8 +43,7 @@ bool MySQL::update(const std::string &strsql)
 {
     if (mysql_query(conn_, strsql.c_str()))
     {
-        LOG_INFO << __FILE__ << ":" << __LINE__ << ":"
-                 << strsql << "update failed!";
+        LOG_ERROR("update failed!");
         return false;
     }
 
@@ -57,8 +54,7 @@ MYSQL_RES *MySQL::query(const std::string &strsql)
 {
     if (mysql_query(conn_, strsql.c_str()))
     {
-        LOG_INFO << __FILE__ << ":" << __LINE__ << ":"
-                 << strsql << "select failed!";
+        LOG_ERROR("select failed!");
         return nullptr;
     }
 

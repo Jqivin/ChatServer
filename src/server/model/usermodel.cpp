@@ -1,7 +1,7 @@
 #include "usermodel.hpp"
 #include "db.h"
 #include <string>
-#include <muduo/base/Logging.h>
+#include "Logger.h"
 
 UserModel::UserModel()
 {
@@ -72,17 +72,17 @@ bool UserModel::updateState(User user)
    // 1.组装sql语句
     char sql[1024] = {0};
     sprintf(sql, "update user set state = '%s' where id = %d", user.getState().c_str(), user.getId());
-    LOG_INFO << "sql is " << sql;
     MySQL mysql;
     if (mysql.connectdb())
     {
         if (mysql.update(sql))
         {
+            LOG_INFO("updateState success:userid=" + std::to_string(user.getId()) + ",state=" + user.getState());
             return true;
         }
     }
 
-    LOG_INFO << "error,sql is " << sql;
+    LOG_ERROR("error,sql is " + std::string(sql));
     return false;
 }
 

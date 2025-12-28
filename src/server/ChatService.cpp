@@ -1,6 +1,6 @@
 #include "ChatService.hpp"
 #include "Public.hpp"
-#include <muduo/base/Logging.h>
+#include "Logger.h"
 #include "group.hpp"
 
 #include <unordered_map>
@@ -36,7 +36,7 @@ MsgHandler ChatService::GetMsgHandler(int msgId)
         // 没找到的话，返回一个默认的业务处理函数  空操作
         return [=](const TcpConnectionPtr &conn, json &js, Timestamp time)
         {
-            LOG_ERROR << "Can not find this msg.MsgId is " << msgId;
+            LOG_ERROR("Can not find this msg.MsgId is " + std::to_string(msgId));
         };
     }
     else
@@ -68,7 +68,7 @@ void ChatService::clientCloseException(const TcpConnectionPtr &conn)
         m_userModel.updateState(user);
     }
 
-    LOG_INFO << "clientCloseException success";
+    LOG_INFO("clientCloseException success" + std::to_string(user.getId()));
 }
 
 // 处理注册业务
@@ -91,14 +91,14 @@ void ChatService::RegisterHandler(const TcpConnectionPtr &conn, const json &js, 
     jsResponse["requestId"] = iRequestId;
     if (bRet)
     {
-        LOG_INFO << "insert usr success.";
+        LOG_INFO("insert usr success.");
 
         jsResponse["errno"] = SUCCESS;
         jsResponse["id"] = user.getId();
     }
     else
     {
-        LOG_ERROR << "insert usr failed.";
+        LOG_ERROR("insert usr failed.");
 
         jsResponse["errno"] = REG_FAILED;
         jsResponse["errmsg"] = "insert usr failed";
@@ -198,7 +198,7 @@ void ChatService::OneChatHandler(const TcpConnectionPtr &conn, json &js, Timesta
         }
     }
 
-    LOG_INFO << "add offline message:" << js.dump();
+    LOG_INFO("add offline message:" + js.dump());
     // toid不在线，存储离线消息
     m_offMsgModel.insert(toid, js.dump());
 }
@@ -300,7 +300,7 @@ bool ChatService::GetFriendInfo(int userid, json &jsonFriends)
 void ChatService::Loginout(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
     int userid = js["userid"].get<int>();
-    LOG_INFO << "userid is loginout " << userid;
+    LOG_INFO("userid is loginout " + std::to_string(userid));
     {
         std::lock_guard<std::mutex> lock(m_mutexCon);
         auto it = m_userConnMap.find(userid);

@@ -1,7 +1,7 @@
 #include "ChatServer.hpp"
 #include "json.hpp"
 #include "ChatService.hpp"
-#include <muduo/base/Logging.h>
+#include "Logger.h"
 
 #include <functional>
 
@@ -17,6 +17,8 @@ ChatServer::ChatServer(EventLoop *loop, InetAddress addr, const std::string &str
     server_.setMessageCallback(std::bind(&ChatServer::OnMessageCallback, this, _1, _2, _3));
     // 设置线程数量
     server_.setThreadNum(4);
+
+    Logger::Instance().StartLogger("/var/log/jqchat");
 }
 ChatServer::~ChatServer()
 {
@@ -46,11 +48,11 @@ void ChatServer::OnMessageCallback(const TcpConnectionPtr &conn,
     std::string strMessage = buff->retrieveAllAsString();
     if(strMessage.empty())
     {
-        LOG_ERROR << "request is empty.";
+        LOG_ERROR("request is empty.");
         return;
     }
 
-    LOG_INFO << "recv message: " << strMessage;
+    LOG_INFO("recv message: " + strMessage);
     // 序列化
     json jsMes = json::parse(strMessage);
     auto msgHandler = ChatService::instance()->GetMsgHandler(jsMes["msgid"].get<int>());
